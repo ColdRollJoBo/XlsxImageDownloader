@@ -9,8 +9,4 @@
     <PackageReference Include="Bytescout.Spreadsheet" Version="4.3.0.1984" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\ExcelObjects\ExcelObjects.csproj" />
-  </ItemGroup>
-
 </Project>
