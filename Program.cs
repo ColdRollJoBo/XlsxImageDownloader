@@ -36,9 +36,9 @@ namespace XlsxImageDownloader
 
             // For single Sheet Downloads by sheet name
             // List of Sheets (Manual Clamping, Light-Duty Pneumatic Clamping, Heavy-Duty Pneumatic Clampi - N, NAAMS, Hydraulic Clamping, Indexers, Thrusters Slides, Part Handlers, Conveyors, Rotaries, Grippers - New, Robohand Accessories, End Effectors, Sheet Metal Grippers, Bag Grippers, Tool Changers, Compliance devices)
-            LoopDownRowsInCurrentSheetAndDownloadImagesToCorrectFolders(vendorProductCatalog, "Manual Clamping");
+            LoopDownRowsInCurrentSheetAndDownloadImagesToCorrectFolders(vendorProductCatalog, "Heavy-Duty Pneumatic Clampi - N");
 
-            WriteLine($"{imagesDownloaded} images have been downloaded. Check sheet to compare");
+            WriteLine($"{imagesDownloaded} images have been downloaded. There are {vendorProductCatalog.Worksheets.ByName("Heavy-Duty Pneumatic Clampi - N").NotEmptyRowMax} products for download. Please refer to error log for more details.");
 
         }
 
@@ -72,9 +72,9 @@ namespace XlsxImageDownloader
             string mainImageFolder = @"C:\Users\jbojovic\Desktop\WebScraperTest\Images";
 
             //  'i' is starting at 1 because there is header row describing the data below it.
-            for (int i = 1; i <= currentSheet.Rows.LastFormatedRow; i++)
+            for (int i = 1; i <= currentSheet.NotEmptyRowMax; i++)
             {
-                for (int j = 0; j <= currentSheet.Columns.LastFormatedColumn; j++)
+                for (int j = 0; j <= currentSheet.NotEmptyColumnMax; j++)
                 {
 
                     switch (j)
@@ -112,13 +112,11 @@ namespace XlsxImageDownloader
                 }
                 else if (rowInfo.Count < 3)
                 {
-                    // The -1 is so you get the correct row number in excel because the index is zero based but the row numbers on the side are not. 
-                    Task t = ErrorLog($"Sheet {sheet} at Row : {i - 1} does not have all 3 parts needed to successfully download an item.");
-                    foreach (string s in rowInfo)
-                    {
-                        Task it = ErrorLog($"{s} /");
-                    }
+                    // The +1 is so you get the correct row number in excel because the index is zero based but the row numbers on the side are not. 
+                    Task t = ErrorLog($"\rSheet: {sheet} at Row : {i + 1} does not have all 3 parts needed to successfully download an item.");
+                    
                 }
+                
                 rowInfo.Clear();
             }
         }
@@ -136,9 +134,6 @@ namespace XlsxImageDownloader
                     string webAddress = itemParts[2].Trim();
                     WebClient client = new WebClient();
                     client.DownloadFile(webAddress, $@"{topLevelImagesFolder}\{sheet}\{itemParts[1]}\{itemParts[0]}.jpg");
-
-
-
                 }
                 // This else statement will create the sub-folder if it does not exist then add the images to the folder with the product name. 
                 else
@@ -149,15 +144,15 @@ namespace XlsxImageDownloader
                     client.DownloadFile(webAddress, $@"{topLevelImagesFolder}\{sheet}\{itemParts[1]}\{itemParts[0]}.jpg");
 
                 }
+                
+                imagesDownloaded++;
             }
             catch (Exception ex)
             {
-                Task t = ErrorLog("\r" + DateTime.Now + "\r" + $"An exception has been caught: {ex.Message}." + "Sheet Name: " + sheet + "\r" + "Subfolder: " + itemParts[1] + "\r" + "Item: " + itemParts[0] + "\r" + "URL:" + itemParts[2]);
+                WriteLine("Error Caught. Check Error Log for more details.");
+
+                Task t = ErrorLog("\r" + DateTime.Now + "\r" + $"An exception has been caught: {ex.Message}." + "\r" + "Sheet Name: " + sheet + "\r" + "Subfolder: " + itemParts[1] + "\r" + "Item: " + itemParts[0] + "\r" + "URL:" + itemParts[2]);
             }
-
-            imagesDownloaded++;
-
-
         }
 
         public static async Task ErrorLog(string errorLogData)
