@@ -13,7 +13,9 @@ namespace XlsxImageDownloader
 {
     class Program
     {
-        static bool triedAlready = false;
+
+        static int imagesDownloaded = 0;
+
         static void Main(string[] args)
         {
             WriteLine("Program Running...");
@@ -25,30 +27,33 @@ namespace XlsxImageDownloader
             Workbook vendorProductCatalog = vendorDoc.Workbook;
             int numberOfSheetsInCatalog = vendorProductCatalog.Worksheets.Count;
 
-            foreach (string sheet in CollectionOfAllSheetNames(vendorProductCatalog, numberOfSheetsInCatalog))
-            {
+            //foreach (string sheet in CollectionOfAllSheetNames(vendorProductCatalog, numberOfSheetsInCatalog))
+            //{
 
-                CreateMainProductFolder(sheet);
+            //    LoopDownRowsInCurrentSheetAndDownloadImagesToCorrectFolders(vendorProductCatalog, sheet);
 
-                LoopDownRowsInCurrentSheetAndDownloadImagesToCorrectFolders(vendorProductCatalog, sheet);
+            //}
 
-            }
             // For single Sheet Downloads by sheet name
-            //LoopDownRowsInCurrentSheetAndDownloadImagesToCorrectFolders(vendorProductCatalog, "Conveyors");
+            // List of Sheets (Manual Clamping, Light-Duty Pneumatic Clamping, Heavy-Duty Pneumatic Clampi - N, NAAMS, Hydraulic Clamping, Indexers, Thrusters Slides, Part Handlers, Conveyors, Rotaries, Grippers - New, Robohand Accessories, End Effectors, Sheet Metal Grippers, Bag Grippers, Tool Changers, Compliance devices)
+            LoopDownRowsInCurrentSheetAndDownloadImagesToCorrectFolders(vendorProductCatalog, "Manual Clamping");
+
+            WriteLine($"{imagesDownloaded} images have been downloaded. Check sheet to compare");
+
         }
 
         public static List<string> CollectionOfAllSheetNames(Workbook catalog, int sheets)
         {
-            List<string> allSheetsWorkbook = new List<string>();
+            List<string> allSheetsInWorkbook = new List<string>();
             // This is a Zero based index so the -1 is needed in the for loop.
             for (int i = 0; i <= sheets - 1; i++)
             {
                 string sheet = catalog.Worksheets[i].Name;
-                allSheetsWorkbook.Add(sheet);
+                allSheetsInWorkbook.Add(sheet);
                 WriteLine(sheet);
 
             }
-            return allSheetsWorkbook;
+            return allSheetsInWorkbook;
         }
 
         public static void CreateMainProductFolder(string folderName)
@@ -100,18 +105,22 @@ namespace XlsxImageDownloader
                 }
                 if (rowInfo.Count.Equals(3))
                 {
-                    WriteLine($"{rowInfo[0]} : {rowInfo[1]} : {rowInfo[2]} ");
+                    //WriteLine($"{rowInfo[0]} : {rowInfo[1]} : {rowInfo[2]} ");
                     DownloadImages(mainImageFolder, sheet, rowInfo);
+
+
                 }
-                else if (rowInfo.Count != 0)
+                else if (rowInfo.Count < 3)
                 {
-                    Task t = ErrorLog($"Row : {i} does not have all 3 parts needed to successfully download an item.");
+                    // The -1 is so you get the correct row number in excel because the index is zero based but the row numbers on the side are not. 
+                    Task t = ErrorLog($"Sheet {sheet} at Row : {i - 1} does not have all 3 parts needed to successfully download an item.");
+                    foreach (string s in rowInfo)
+                    {
+                        Task it = ErrorLog($"{s} /");
+                    }
                 }
                 rowInfo.Clear();
             }
-
-
-
         }
 
 
@@ -124,7 +133,7 @@ namespace XlsxImageDownloader
             {   // Checking to see if the subfolder already exists. If so then the product is added to the folder.
                 if (Directory.CreateDirectory(topLevelImagesFolder + "\\" + sheet + "\\" + itemParts[1]).Exists)
                 {
-                    string webAddress = itemParts[2];
+                    string webAddress = itemParts[2].Trim();
                     WebClient client = new WebClient();
                     client.DownloadFile(webAddress, $@"{topLevelImagesFolder}\{sheet}\{itemParts[1]}\{itemParts[0]}.jpg");
 
@@ -135,7 +144,7 @@ namespace XlsxImageDownloader
                 else
                 {
                     Directory.CreateDirectory(topLevelImagesFolder + "\\" + sheet + "\\" + itemParts[1]);
-                    string webAddress = itemParts[2];
+                    string webAddress = itemParts[2].Trim();
                     WebClient client = new WebClient();
                     client.DownloadFile(webAddress, $@"{topLevelImagesFolder}\{sheet}\{itemParts[1]}\{itemParts[0]}.jpg");
 
@@ -143,36 +152,13 @@ namespace XlsxImageDownloader
             }
             catch (Exception ex)
             {
-                if (!triedAlready)
-                {
-                    triedAlready = true;
-                    Thread.Sleep(2000);
-                    RetryDownload(topLevelImagesFolder, sheet, itemParts);
-                }
-                else
-                {
-                    WriteLine($"An exception has been caught: {ex.Message}. It is on item {itemParts[0]} and the link is {itemParts[2]}.");
-                    Task t = ErrorLog(DateTime.Now + "\r" + sheet + "\r" + itemParts[1] + "\r" + itemParts[0] + "\r" + itemParts[2] + "\r");
-
-                }
-
+                Task t = ErrorLog("\r" + DateTime.Now + "\r" + $"An exception has been caught: {ex.Message}." + "Sheet Name: " + sheet + "\r" + "Subfolder: " + itemParts[1] + "\r" + "Item: " + itemParts[0] + "\r" + "URL:" + itemParts[2]);
             }
 
+            imagesDownloaded++;
+
 
         }
-
-        public static void RetryDownload(string topLevelImagesFolder, string sheet, List<string> itemParts)
-        {
-            //Retrying to download the image again.
-            DownloadImages(topLevelImagesFolder, sheet, itemParts);
-
-            Task t = ErrorLog(DateTime.Now + " Retried download, check for success" +
-                "\r" + sheet + "\r" + itemParts[1] + "\r" + itemParts[0] + "\r" + itemParts[2] + "\r");
-
-            triedAlready = false;
-
-        }
-
 
         public static async Task ErrorLog(string errorLogData)
         {
