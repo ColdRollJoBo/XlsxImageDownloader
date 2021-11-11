@@ -27,18 +27,23 @@ namespace XlsxImageDownloader
             Workbook vendorProductCatalog = vendorDoc.Workbook;
             int numberOfSheetsInCatalog = vendorProductCatalog.Worksheets.Count;
 
-            //foreach (string sheet in CollectionOfAllSheetNames(vendorProductCatalog, numberOfSheetsInCatalog))
-            //{
+            foreach (string sheet in CollectionOfAllSheetNames(vendorProductCatalog, numberOfSheetsInCatalog))
+            {
 
-            //    LoopDownRowsInCurrentSheetAndDownloadImagesToCorrectFolders(vendorProductCatalog, sheet);
+                LoopDownRowsInCurrentSheetAndDownloadImagesToCorrectFolders(vendorProductCatalog, sheet);
 
-            //}
+                WriteLine($"{imagesDownloaded} images have been downloaded. There are {vendorProductCatalog.Worksheets.ByName(sheet).NotEmptyRowMax} products for download. Please refer to error log for more details.");
 
-            // For single Sheet Downloads by sheet name
-            // List of Sheets (Manual Clamping, Light-Duty Pneumatic Clamping, Heavy-Duty Pneumatic Clampi - N, NAAMS, Hydraulic Clamping, Indexers, Thrusters Slides, Part Handlers, Conveyors, Rotaries, Grippers - New, Robohand Accessories, End Effectors, Sheet Metal Grippers, Bag Grippers, Tool Changers, Compliance devices)
-            LoopDownRowsInCurrentSheetAndDownloadImagesToCorrectFolders(vendorProductCatalog, "Heavy-Duty Pneumatic Clampi - N");
+                //Resetting the counter for the new sheet. 
+                imagesDownloaded = 0;
 
-            WriteLine($"{imagesDownloaded} images have been downloaded. There are {vendorProductCatalog.Worksheets.ByName("Heavy-Duty Pneumatic Clampi - N").NotEmptyRowMax} products for download. Please refer to error log for more details.");
+            }
+
+            //// For single Sheet Downloads by sheet name
+            //// List of Sheets (Manual Clamping, Light-Duty Pneumatic Clamping, Heavy-Duty Pneumatic Clampi - N, NAAMS, Hydraulic Clamping, Indexers, Thrusters Slides, Part Handlers, Conveyors, Rotaries, Grippers - New, Robohand Accessories, End Effectors, Sheet Metal Grippers, Bag Grippers, Tool Changers, Compliance devices)
+            //LoopDownRowsInCurrentSheetAndDownloadImagesToCorrectFolders(vendorProductCatalog, "Heavy-Duty Pneumatic Clampi - N");
+
+            //WriteLine($"{imagesDownloaded} images have been downloaded. There are {vendorProductCatalog.Worksheets.ByName("Heavy-Duty Pneumatic Clampi - N").NotEmptyRowMax} products for download. Please refer to error log for more details.");
 
         }
 
@@ -155,6 +160,7 @@ namespace XlsxImageDownloader
             }
         }
 
+        //TODO: Have it create a new file if an Error Log does not exist. Cuurently there must be a txt file with the name of FailedUrls in that location for this to work correctly.
         public static async Task ErrorLog(string errorLogData)
         {
             using StreamWriter file = new(@"C:\Users\jbojovic\Desktop\WebScraperTest\FailedUrls.txt", append: true);
