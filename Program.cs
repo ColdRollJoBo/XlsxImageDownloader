@@ -22,7 +22,8 @@ namespace XlsxImageDownloader
             // The Spreadsheet Class is the whole excel file at the top most level.
             // The workbook is one step in and is mostly what is used to get actual data.
             Spreadsheet vendorDoc = new Spreadsheet();
-            vendorDoc.LoadFromFile(@"C:\Users\jbojovic\Desktop\WebScraperTest\destaco3Column.xlsx");
+            // Make sure to change the file name
+            vendorDoc.LoadFromFile(@"C:\Users\jbojovic\Desktop\WebScraperTest\LincolnMityvac3Col.xlsx");
 
             Workbook vendorProductCatalog = vendorDoc.Workbook;
             int numberOfSheetsInCatalog = vendorProductCatalog.Worksheets.Count;
