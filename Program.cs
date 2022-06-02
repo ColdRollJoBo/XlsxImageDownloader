@@ -7,7 +7,17 @@ using System.Threading;
 using System.Threading.Tasks;
 using static System.Console;
 
+/* 
+ This program will take an Excel spreadsheet and download images into a specific folder structure depending on the sheets and other info. There is a bit of a setup and listed below are the steps required for this to work as intended. 
 
+When we get an Excel Sheet from a vendor we only need 3 columns and all the others can be deleted. The 3 columns needed are the product name, the sub-category, and the url that will be used to download the image. The order of the columns matter and they are listed below. 
+
+Col 1: Product Name
+Col 2: Sub-Category
+Col 3: Download Url
+
+The Sheet name will be used as the top level folder name, then new folders will be made by sub category for organization.
+ */
 
 namespace XlsxImageDownloader
 {
@@ -60,15 +70,6 @@ namespace XlsxImageDownloader
 
             }
             return allSheetsInWorkbook;
-        }
-
-        public static void CreateMainProductFolder(string folderName)
-        {
-            // Setting the folder that all the other folders will be created in when organizing the downloaded images.
-            string topLevelImagesFolder = @"C:\Users\jbojovic\Desktop\WebScraperTest\Images";
-            // Creating the new Sub-Category images will be organized into.
-            Directory.CreateDirectory(topLevelImagesFolder + "\\" + folderName);
-
         }
 
         public static void LoopDownRowsInCurrentSheetAndDownloadImagesToCorrectFolders(Workbook book, string sheet)
