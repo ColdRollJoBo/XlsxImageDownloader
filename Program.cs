@@ -17,6 +17,10 @@ Col 2: Sub-Category
 Col 3: Download Url
 
 The Sheet name will be used as the top level folder name, then new folders will be made by sub category for organization.
+
+
+||||| NOTE |||||
+There are a couple ToDo Notes where you will need to update the file path if you are running this. 
  */
 
 namespace XlsxImageDownloader
@@ -32,8 +36,8 @@ namespace XlsxImageDownloader
             // The Spreadsheet Class is the whole excel file at the top most level.
             // The workbook is one step in and is mostly what is used to get actual data.
             Spreadsheet vendorDoc = new Spreadsheet();
-            // Make sure to change the file name
-            vendorDoc.LoadFromFile(@"C:\Users\jbojovic\Desktop\WebScraperTest\LincolnMityvac3Col.xlsx");
+            // Make sure to update the file path to where the file is located.
+            vendorDoc.LoadFromFile(@"C:\Users\jbojovic\Desktop\WebScraperTest\destaco3Column.xlsx");
 
             Workbook vendorProductCatalog = vendorDoc.Workbook;
             int numberOfSheetsInCatalog = vendorProductCatalog.Worksheets.Count;
@@ -76,7 +80,9 @@ namespace XlsxImageDownloader
         {
             Worksheet currentSheet = book.Worksheets.ByName(sheet);
             List<string> rowInfo = new List<string>();
-            string mainImageFolder = @"C:\Users\jbojovic\Desktop\WebScraperTest\Images";
+            //TODO: Update the file path to your username after the Users Directory.
+            //@"C:\Users\YOUR-USER-NAME-HERE\Desktop\FailedIssuesLog"
+            string mainImageFolder = @"C:\Users\jbojovic\Desktop\ProductImages";
 
             //  'i' is starting at 1 because there is header row describing the data below it.
             for (int i = 1; i <= currentSheet.NotEmptyRowMax; i++)
@@ -121,9 +127,9 @@ namespace XlsxImageDownloader
                 {
                     // The +1 is so you get the correct row number in excel because the index is zero based but the row numbers on the side are not. 
                     Task t = ErrorLog($"\rSheet: {sheet} at Row : {i + 1} does not have all 3 parts needed to successfully download an item.");
-                    
+
                 }
-                
+
                 rowInfo.Clear();
             }
         }
@@ -151,7 +157,7 @@ namespace XlsxImageDownloader
                     client.DownloadFile(webAddress, $@"{topLevelImagesFolder}\{sheet}\{itemParts[1]}\{itemParts[0]}.jpg");
 
                 }
-                
+
                 imagesDownloaded++;
             }
             catch (Exception ex)
@@ -162,11 +168,23 @@ namespace XlsxImageDownloader
             }
         }
 
-        //TODO: Have it create a new file if an Error Log does not exist. Cuurently there must be a txt file with the name of FailedUrls in that location for this to work correctly.
+        //TODO: Update the file path to your username after the Users Directory.
+        //@"C:\Users\YOUR-USER-NAME-HERE\Desktop\FailedIssuesLog"
         public static async Task ErrorLog(string errorLogData)
         {
-            using StreamWriter file = new(@"C:\Users\jbojovic\Desktop\WebScraperTest\FailedUrls.txt", append: true);
-            await file.WriteLineAsync(errorLogData);
+            if (Directory.CreateDirectory(@"C:\Users\jbojovic\Desktop\FailedIssuesLog").Exists)
+            {
+                using StreamWriter file = new(@"C:\Users\jbojovic\Desktop\FailedIssuesLog\errorLog.txt", append: true);
+                await file.WriteLineAsync(errorLogData);
+            }
+            else
+            {
+                Directory.CreateDirectory(@"C:\Users\jbojovic\Desktop\FailedIssuesLog");
+                using StreamWriter file = new(@"C:\Users\jbojovic\Desktop\FailedIssuesLog\errorLog.txt", append: true);
+                await file.WriteLineAsync(errorLogData);
+
+            }
+
         }
     }
 }
